@@ -24,4 +24,91 @@ here we will be exploring the database given to us
 
 ## Analytics using MySQL📊
 -**Finance Analytics:** 
+- Here we will be using the user-defined functions:
+- **creating croma india product wise sales report for fiscal year 2021**
+#### Creating a new function:
+- **getting the fiscal year with the help of user defined funtion:**
+```sql
+CREATE DEFINER=`root`@`localhost` FUNCTION `fiscal_year`(calander_date DATE ) RETURNS int
+    DETERMINISTIC
+BEGIN
+	declare fiscal_year INT ;
+    SET fiscal_year = year(date_add(calander_date,interval 4 month));
+RETURN fiscal_year ;
+END
+```
+-**creating fiscal quarter with the help of user defined function:**
+```sql
+CREATE DEFINER=`root`@`localhost` FUNCTION `get_fiscal_quarter`(calander_date DATE) RETURNS char(2) CHARSET utf8mb4
+    DETERMINISTIC
+BEGIN
+	declare fiscal_quarter int ;
+    set fiscal_quarter = month(calander_date);
+RETURN case when fiscal_quarter in (9,10,11) then "Q1"
+when  fiscal_quarter in (12,1,2) then "Q2"
+ when fiscal_quarter in (3,4,5) then "Q3"
+  when fiscal_quarter in (6,7,8) then "Q4"
+end;
+END
+```
+
+### Stored Procedure :
+
+- we create stored procedure cause to create function for each and every customer is so time taking so we will take the help of stored procedure.
+  
+-**getting the monthly sales report by customer:**
+```sql
+CREATE DEFINER=`root`@`localhost` PROCEDURE `get_monthly_gross_sales_for_customer`(in_customer_codes TEXT)
+BEGIN
+SELECT g.fiscal_year,
+sum(s.sold_quantity*g.gross_price) as gross_total_price
+ FROM fact_sales_monthly s
+join fact_gross_price g
+on g.product_code = s.product_code and g.fiscal_year = fiscal_year(s.date) 
+where find_in_set(s.customer_code,in_customer_codes)>0
+group by g.fiscal_year
+order by g.fiscal_year;
+END
+```
+-**Getting the market badge:**
+
+-if total sold quantity > 5 million that market is considered as Gold else Silver.
+
+```sql
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `get_market_badge`
+(in in_market varchar(45),
+ in in_fiscal_year year,
+ out out_badge varchar(45))
+BEGIN
+declare qty int default 0;
+# set default market to be india
+if in_market = "" then 
+	set in_market = "india";
+end if ;
+```
+
+- **retriving total qty for the particular market and fiscal year**
+```sql 
+SELECT sum(s.sold_quantity) into qty  FROM fact_sales_monthly s
+join dim_customer c 
+on c.customer_code = s.customer_code
+where c.market = in_market  and fiscal_year(s.date) = in_fiscal_year
+group by c.market;  
+-- Determining market badge
+if qty>5000000 then 
+	set out_badge = "gold";
+else
+	set out_badge = "silver";
+end if;
+
+END ;
+```
+#### Generating the reports for top markets top products top customers for a given financial year by net sales:
+
+
+
+
+
+
   
