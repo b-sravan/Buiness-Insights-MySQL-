@@ -106,7 +106,7 @@ END ;
 ```
 #### Generating the reports for top markets top products top customers for a given financial year by net sales:
 - **Creating database views for error-free and simplifying the queries:**
-- **pre_invoice_discount_percentage:**
+- **creating view for pre_invoice_discount_percentage:**
 ```sql
 CREATE  VIEW `sales_preinv_discount` AS
     SELECT 
@@ -126,9 +126,120 @@ CREATE  VIEW `sales_preinv_discount` AS
             AND (`pre`.`fiscal_year` = FISCAL_YEAR(`s`.`date`)))))
 ```
 
+- **creating view for post invoice discount percentage:**
+```sql
+CREATE VIEW `post_invoice_discount_pct` AS
+select 
+	s.date,s.fiscal_year,
+    s.customer_code,s.market,
+    s.product_code,s.product,s.variant,
+    s.sold_quantity,s.gross_price_total,
+	s.pre_invoice_discount_pct,
+    (s.gross_total_price-s.pre_invoice_discount_pct*s.gross_total_price) as net_invoice_sales,
+    (po.discounts_pct+po.other_deductions_pct) as post_invoice_discount_pct
+    from  sales_preinv_discount s 
+    join fact_post_invoice_deductions po
+    on po.customer_code = s.customer_code
+    and po.product_code = s.product_code
+    and po.date = s.date
+```
+
+- **creating view for net sales:**
+```sql
+Create view net_sales as 
+select 
+*,
+(1-post_invoice_discount_pct)*net_invoice_sales as net_sales
+from sales_post_invoice_discount_pct;
+```
+- **Creating a Stored Procedure for Top N markets:**
+```sql
+DELIMITER $$
+USE `gdb0041`$$
+CREATE PROCEDURE `get_topN_markets_by_net_sales` (in_fiscal_year year,
+in_top_n tinyint)
+BEGIN
+select 
+	market,
+    round(sum(net_sales)/1000000,2) as net_sales_mln
+from net_sales 
+where fiscal_year = in_fiscal_year
+group by market
+order by net_sales_mln desc
+limit in_top_n ;
+END$$
+
+DELIMITER ;
 
 
+```
+- **Creating a Stored Procedure for Top N customers:**
+```sql
+
+DELIMITER $$
+USE `gdb0041`$$
+CREATE PROCEDURE `Get_topN_customers_by_net_sales` (
+in_market varchar(45),
+in_fiscal_year year,
+in_topN tinyint)
+BEGIN
+select 
+	c.customer,
+    round(sum(n.net_sales)/1000000,2) as net_sales_mln
+from net_sales n
+join dim_customer c
+on n.customer_code = c.customer_code
+where fiscal_year = in_fiscal_year and n.market = in_market
+group by c.customer
+order by net_sales_mln desc
+limit in_topN ;
+END$$
+
+DELIMITER ;
+```
+- **Creating a Stored Procedure for Top N products:**
+```sql
+
+DELIMITER $$
+USE `gdb0041`$$
+CREATE PROCEDURE `Get_topN_customers_by_net_sales` (
+in_market varchar(45),
+in_fiscal_year year,
+in_topN tinyint)
+BEGIN
+select 
+	p.product,
+    round(sum(n.net_sales)/1000000,2) as net_sales_mln
+from net_sales n
+join dim_product p
+on n.product_code = c.product_code
+where fiscal_year = in_fiscal_year and n.market = in_market
+group by p.product
+order by net_sales_mln desc
+limit in_topN ;
+END$$
+```
+- **Top 10 Markets by % net sales:**
+```sql
+
+with cte1 as 
+(
+
+select 
+	c.customer,
+    round(sum(n.net_sales)/1000000,2) as net_sales_mln
+from net_sales n
+join dim_customer c 
+where fiscal_year = 2021
+group by c.customer)
+
+select *,
+net_sales_mln*100/sum(net_sales_mln) 
+over () as pct  from cte1
+order by net_sales_mln desc
+limit 5 
 
 
+```
 
   
