@@ -264,3 +264,62 @@ limit 5
 
 
 ```
+#### Net Sales contribution:
+**here we are using the window function to retrive the percentage share of the net sales:**
+```sql
+with cte1 as 
+(
+select 
+	customer,
+    round(sum(net_sales)/1000000,2) as net_sales_mln
+from net_sales s
+join customer c
+	on c.customer_id = s.customer_id
+where  s.fiscal_year = 2021
+group by customer
+
+)
+
+select *,
+	net_slaes_mln*100/sum(net_sales_mln) over() as pct
+    from cte1
+order by net_sales_mln desc
+```
+
+#### Getting top N products in each division by their quantity sold:
+**With the help of the window function(dense rank):**
+**creating stored procedure for  getting the topN products:**
+```sql
+
+DELIMITER $$
+USE `gdb0041`$$
+CREATE PROCEDURE 
+`Get_top_N_products_in_each_division_by_their_quantity_sold` (
+in_fiscal_year year,
+in_drank int )
+BEGIN
+with  cte1 as 
+(select 
+	p.division,
+    p.product,
+    sum(sold_quantity) as total_qty
+from fact_sales_monthly s
+join dim_product p 
+	on p.product_code = s.product_code
+where fiscal_year = in_fiscal_year
+group by p.product),
+
+cte2 as (
+
+select *,
+	dense_rank() over(partition by division order by total_qty desc) as drank
+ from cte1)
+ 
+ select * from cte2 where drank<= in_drank;
+
+END$$
+
+DELIMITER ;
+
+
+```
