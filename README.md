@@ -323,3 +323,5 @@ DELIMITER ;
 
 
 ```
+### Supply Chain Analytics:
+**Here we will be forecasting the accuracy for all the customers for  a given fiscal year:**
