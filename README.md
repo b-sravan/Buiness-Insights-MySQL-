@@ -325,3 +325,30 @@ DELIMITER ;
 ```
 ### Supply Chain Analytics:
 **Here we will be forecasting the accuracy for all the customers for  a given fiscal year:**
+- here we created a temporary table to find the error percentage of the forecast data:
+```sql
+create temporary table forecast_err_table as 
+
+with forcast_err_table as
+(
+select  s.customer_code,
+sum(s.sold_quantity) as total_sold_qty,
+sum(s.forcast_quantity) as total_forecast_qty,
+sum((forcast_quantity-sold_quantity)) as net_error,
+sum((forcast_quantity-sold_quantity))*100/sum(forecast_quantity) as net_err_pct,
+sum(abs(forcast_quantity-sold_quantity )) as abs_error,
+sum(abs(forcast_quantity-sold_quantity ))*100/sum(forecast_quantity) as abs_err_pct
+from fact_act_est
+where fiscal_year = 2021
+group by customer_code
+
+)
+
+select e.*,
+c.customer,c.market,
+if(abs_err_pct>100,0,100-abs_err_pct) as forecast_accuracy
+from forcast_err_table e
+join dim_customer c 
+using (customer_code)
+order by forecast_accuracy asc
+```
