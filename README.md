@@ -352,3 +352,28 @@ join dim_customer c
 using (customer_code)
 order by forecast_accuracy asc
 ```
+### INSIGHTS:
+
+### Forecast Accuracy Insights 📈
+
+1. **Customer-Specific Accuracy:**
+   - Understanding the accuracy of forecasts tailored to each customer is crucial. The analysis reveals that certain customers showcase remarkably high forecast accuracy, indicating a robust demand forecasting model tailored to their specific needs.
+
+2. **Market Influence on Accuracy:**
+   - Examining the accuracy relative to markets provides strategic insights. Some markets demonstrate consistently high accuracy levels, suggesting a potential correlation between market dynamics and forecasting precision. This correlation opens avenues for targeted improvements in forecasting methodologies based on market characteristics.
+
+3. **Improvement Opportunities:**
+   - The table showcases customers with lower forecast accuracy, pinpointing areas for improvement. Identifying and addressing factors contributing to lower accuracy, such as market volatility or product-specific challenges, can enhance overall supply chain efficiency and customer satisfaction.
+
+### Actionable Steps 🚀
+
+1. **Customer-Centric Adjustments:**
+   - Tailor forecasting models to address the unique patterns and demands of high-accuracy customers. This can involve personalized forecasting algorithms, collaborative forecasting efforts, or regular communication channels to gather real-time insights.
+
+2. **Market-Driven Strategies:**
+   - Explore strategies to enhance accuracy in markets where performance lags. This could involve market-specific training for forecasting models, considering regional economic factors, or collaborating with local stakeholders for more precise predictions.
+
+3. **Continuous Improvement Initiatives:**
+   - Focus on customers with lower accuracy percentages to initiate continuous improvement initiatives. Regularly reassess forecasting models, incorporate feedback loops, and stay agile in adapting to evolving market conditions.
+
+The forecast accuracy analysis not only provides a snapshot of past performance but also serves as a foundation for proactive strategies to elevate supply chain efficiency and responsiveness.
